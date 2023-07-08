@@ -1,3 +1,4 @@
+import { isString } from 'lodash';
 import { RECEIVE_MESSAGE, STATUS_CHANGE } from './configs/event';
 import {
   STANDBY, //啟動ws之前
@@ -53,10 +54,26 @@ const onError = (wsInfo) => (e) => {
   changeCurrentStatus(wsInfo, ERROR, e);
 };
 
-function injectionWSInfo(wsInfo , targetFn){
-  return ()=>{
-    targetFn(wsInfo)
-  }
+function wrapEventTargetFunctions(wsInfo) {
+  const delegate = document.createDocumentFragment();
+
+  wsInfo.addEventListener = (...payload) => {
+    delegate.addEventListener(...payload);
+  };
+  wsInfo.dispatchEvent = (...payload) => {
+    delegate.dispatchEvent(...payload);
+  };
+  wsInfo.removeEventListener = (...payload) => {
+    delegate.removeEventListener(...payload);
+  };
+
+  return wsInfo
+}
+
+function injectionWSInfo(wsInfo, targetFn) {
+  return (...payload) => {
+    targetFn(wsInfo, ...payload);
+  };
 }
 
 function changeCurrentStatus(wsInfo, status, payload = null) {
@@ -124,19 +141,21 @@ export function setOnReceivedMessage(wsInfo, event) {
   wsInfo.addEventListener(RECEIVE_MESSAGE, event);
 }
 
+export function setOnStatusChange(wsInfo, event) {
+  wsInfo.addEventListener(STATUS_CHANGE, event);
+}
+
 export function connectWS(wsInfo) {
   let wsInstance = null;
 
   try {
     wsInstance = new WebSocket(wsInfo.path);
-
-    subscribeEvents(wsInstance);
-    changeCurrentStatus(wsInstance, STANDBY);
+    wsInfo.instance = wsInstance;
+    subscribeEvents(wsInfo);
+    changeCurrentStatus(wsInfo, STANDBY);
   } catch (e) {
-    changeCurrentStatus(wsInstance, ERROR, e);
+    changeCurrentStatus(wsInfo, ERROR, e);
   }
-
-  wsInfo.instance = wsInstance;
 }
 
 export function disconnectWS(wsInfo) {
@@ -172,26 +191,24 @@ export function reconnectWS(wsInfo) {
 }
 
 export function sendWS(wsInfo, payload) {
-  const json = JSON.stringify(payload);
+  const sendStr = isString(payload) ? payload : JSON.stringify(payload);
 
   try {
-    wsInfo.instance.send(json);
+    wsInfo.instance.send(sendStr);
   } catch (e) {
     changeCurrentStatus(wsInfo, ERROR, e);
   }
 }
 
-export function setOnStatusChange(wsInfo, event) {
-  wsInfo.addEventListener(STATUS_CHANGE, event);
-}
-
-export function createWebsocketAPI(wsInfo){
+export function wrapWebsocketAPI(wsInfo) {
   return {
-    connect: injectionWSInfo(wsInfo , connectWS),
-    reconnect: injectionWSInfo(wsInfo , reconnectWS),
-    disconnect: injectionWSInfo(wsInfo , disconnectWS),
-    send: injectionWSInfo(wsInfo , sendWS)
-  }
+    connect: injectionWSInfo(wsInfo, connectWS),
+    reconnect: injectionWSInfo(wsInfo, reconnectWS),
+    disconnect: injectionWSInfo(wsInfo, disconnectWS),
+    send: injectionWSInfo(wsInfo, sendWS),
+    onStatusChange: injectionWSInfo(wsInfo , setOnStatusChange),
+    onReceivedMessage: injectionWSInfo(wsInfo , setOnReceivedMessage),
+  };
 }
 
 export default function createWebsocketConnectInfo({
@@ -208,7 +225,7 @@ export default function createWebsocketConnectInfo({
       }
     : STATUS_EVENT_GROUP;
 
-  return {
+  const wsInfo = {
     instance: null,
     path,
     currentStatus: STANDBY,
@@ -224,5 +241,6 @@ export default function createWebsocketConnectInfo({
         : checkpointDelayMS,
     },
   };
+  
+  return wrapEventTargetFunctions(wsInfo);
 }
-
