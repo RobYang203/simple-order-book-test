@@ -20,7 +20,7 @@ let STATUS_EVENT_GROUP = {
   [ERROR]: null,
 };
 
-const CHECK_POINT_DELAY_MS = 10 * 60 * 1000;
+const CHECK_POINT_DELAY_MS = 3 * 60 * 1000;
 
 //event
 const onOpen = (wsInfo) => () => {
@@ -45,12 +45,18 @@ const onMessage = (wsInfo) => (e) => {
 };
 
 const onClose = (wsInfo) => () => {
+  console.log("🚀 ~ file: index.js:52 ~ onClose ~ onClose:", wsInfo)
+  clearCheckpointInfo(wsInfo);
+  wsInfo.instance = null;
+  
   if (wsInfo.currentStatus === DISCONNECTING) {
     changeCurrentStatus(wsInfo, DISCONNECTED);
   }
 };
 
 const onError = (wsInfo) => (e) => {
+  console.log("🚀 ~ file: index.js:52 ~ onClose ~ onClose:", wsInfo ,e)
+
   changeCurrentStatus(wsInfo, ERROR, e);
 };
 
@@ -164,9 +170,7 @@ export function disconnectWS(wsInfo) {
 
   try {
     wsInfo.instance.close();
-    wsInfo.instance = null;
 
-    clearCheckpointInfo(wsInfo);
     changeCurrentStatus(wsInfo, DISCONNECTING);
   } catch (e) {
     changeCurrentStatus(wsInfo, ERROR, e);
