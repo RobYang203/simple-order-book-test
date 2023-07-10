@@ -1,43 +1,8 @@
 import { extendTheme } from '@chakra-ui/react';
 import typography from './typography';
+import { RED, GREEN, ASK, BID } from 'constants/quote';
 
 const colors = {
-  yellow: {
-    50: '#FFF9DB',
-    100: '#FDF5CD',
-    200: '#FFEEAF',
-    300: '#FFE27F',
-    400: '#FFE075',
-    500: '#FFDB60',
-    600: '#FFCB1E',
-    700: '#E6B206',
-    800: '#B38A00',
-    900: '#806300',
-  },
-  green: {
-    50: '#E7FAE5',
-    100: '#C5ECC4',
-    200: '#A1DDA0',
-    300: '#7DCF7B',
-    400: '#68C766',
-    500: '#40A83D',
-    600: '#31832F',
-    700: '#205D20',
-    800: '#103911',
-    900: '#001500',
-  },
-  red: {
-    50: '#FFEBE8',
-    100: '#F0C9C5',
-    200: '#DFA5A1',
-    300: '#D07E7B',
-    400: '#C76666',
-    500: '#A8443D',
-    600: '#843A2F',
-    700: '#5F2D21',
-    800: '#3B1C12',
-    900: '#1C0B03',
-  },
   darkBlue: {
     700: '#2D2C31',
     800: '#1E1A2F',
@@ -48,6 +13,25 @@ const colors = {
     400: '#A1A1A1',
     500: '#9D9D9D',
     600: '#555555',
+  },
+  quotes: {
+    default: {
+      full: '#F0F4F8',
+      alpha120: 'rgba(134, 152, 170, 0.12)',
+    },
+    red: {
+      full: '#FF5B5A',
+      alpha120: 'rgba(255, 90, 90, 0.12)',
+      alpha500: 'rgba(255, 91, 90, 0.5)',
+    },
+    green: {
+      full: '#00b15d',
+      alpha120: 'rgba(16, 186, 104, 0.12)',
+      alpha500: 'rgba(0, 177, 93, 0.5)',
+    },
+    darkBlue: {
+      full: '#1E3059',
+    },
   },
 };
 

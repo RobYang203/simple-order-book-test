@@ -1,20 +1,29 @@
 import { CONNECT, DISCONNECT, RECONNECT, SEND } from 'constants/wsCommands';
 import { connectWS, disconnectWS, reconnectWS, sendWS } from 'utils/ws';
 
+export function mergeClass(...classes) {
+  return classes.reduce((total, next) => {
+    return {
+      ...total,
+      ...next,
+    };
+  }, {});
+}
+
 export function executeWSCommand(wsInfo, command, payload) {
   try {
     switch (command) {
       case SEND:
-        sendWS(wsInfo , payload)
+        sendWS(wsInfo, payload);
         break;
       case CONNECT:
-        connectWS(wsInfo)
+        connectWS(wsInfo);
         break;
       case DISCONNECT:
-        disconnectWS(wsInfo)
+        disconnectWS(wsInfo);
         break;
       case RECONNECT:
-        reconnectWS(wsInfo)
+        reconnectWS(wsInfo);
         break;
       default:
         break;
@@ -26,3 +35,5 @@ export function executeWSCommand(wsInfo, command, payload) {
     );
   }
 }
+
+// export const get
