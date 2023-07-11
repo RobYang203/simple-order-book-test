@@ -53,3 +53,8 @@ export const okQuotesAction = (payload) => ({
   type: types.QUOTES_SUCCESS,
   payload,
 });
+
+export const processQuotesBufferAction = (payload) => ({
+  type: types.WS_QUOTES_BUFFER_PROCESSING,
+  payload,
+});

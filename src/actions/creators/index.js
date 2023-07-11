@@ -11,3 +11,8 @@ export const disconnectAction = (type) => ({
     command: DISCONNECT,
   },
 });
+
+export const processBufferAction = (type ,payload) => ({
+  type: `WS_${type}_BUFFER_PROCESSING`,
+  payload,
+});

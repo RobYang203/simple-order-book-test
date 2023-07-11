@@ -21,15 +21,15 @@ function SizeCell({ sx, size }) {
 
     setAnimationStyle(style);
 
+    window.setTimeout(() => {
+      setAnimationStyle({});
+    }, 150);
+    
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [size]);
 
   return (
-    <Box
-      sx={mergeClass(sx, animationStyle)}
-      onTransitionEnd={() => setAnimationStyle({})}
-      flex={1}
-    >
+    <Box sx={mergeClass(sx, animationStyle)} flex={1}>
       <Text fontWeight={900} as="h6">
         {size}
       </Text>

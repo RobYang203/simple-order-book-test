@@ -1,6 +1,5 @@
 import React from 'react';
-import { Box, Text } from '@chakra-ui/react';
-import { mergeClass } from 'utils';
+import { Box } from '@chakra-ui/react';
 import propTypes from 'prop-types';
 
 const getClasses = (widthPercent, background) => ({

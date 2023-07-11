@@ -1,3 +1,4 @@
+export const NOTREADY = 'notready';
 export const STANDBY = 'standby';
 export const CONNECTING = 'connecting';
 export const CONNECTED = 'connected';

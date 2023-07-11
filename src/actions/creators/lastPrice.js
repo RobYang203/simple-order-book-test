@@ -54,3 +54,7 @@ export const okLastPriceAction = (payload) => ({
   payload,
 });
 
+export const processLastPriceBufferAction = (payload) => ({
+  type: types.WS_LAST_PRICE_BUFFER_PROCESSING,
+  payload,
+});

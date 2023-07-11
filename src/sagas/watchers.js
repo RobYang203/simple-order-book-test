@@ -1,7 +1,10 @@
 import types from 'actions/types';
 import { takeEvery, takeLatest } from 'redux-saga/effects';
 import { executeQuotesWSSaga, transFormQuotesSaga } from './quotesSaga';
-import { executeLastPriceWSSaga, transFormLastPriceSaga } from './lastPriceSaga';
+import {
+  executeLastPriceWSSaga,
+  transFormLastPriceSaga,
+} from './lastPriceSaga';
 
 export { connectQuotesWSSaga } from './quotesSaga';
 

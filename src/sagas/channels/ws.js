@@ -1,18 +1,55 @@
 import { disconnectAction, processDataAction } from 'actions/creators';
 import { eventChannel } from 'redux-saga';
-import { setOnReceivedMessage, setOnStatusChange } from 'utils/ws';
+import {
+  cleanWaitingToSendBuffer,
+  reconnectWS,
+  sendWS,
+  setOnConnected,
+  setOnConnecting,
+  setOnError,
+  setOnReceivedMessage,
+} from 'utils/ws';
+
+const CHECK_COUNT = 5;
+const waitReconnectMS = 60 * 1000;
+const TRY_RECONNECT_COUNT = 5;
+
+let timeID = null;
+let tryReconnectCount = 0;
 
 export const createWebsocketChannel = (wsInfo, actionType) => {
   return eventChannel((emitter) => {
-    setOnStatusChange(wsInfo, (e) => {});
+    setOnConnecting(wsInfo, (e) => {
+      sendWS(wsInfo, 'ping');
 
-    setOnReceivedMessage(wsInfo, (e) => {
+      if (wsInfo.checkpointInfo.count > CHECK_COUNT) {
+        reconnectWS(wsInfo);
+      }
+    });
+
+    setOnConnected(wsInfo, (e) => {
+      cleanWaitingToSendBuffer(wsInfo);
+    });
+
+    setOnError(wsInfo, (e) => {
+      if (timeID && tryReconnectCount > TRY_RECONNECT_COUNT) return;
+
+      timeID = window.setTimeout(() => {
+        reconnectWS(wsInfo);
+        timeID = null;
+        tryReconnectCount++;
+      }, waitReconnectMS);
+    });
+
+    setOnReceivedMessage(wsInfo, async (e) => {
       const payload = e.detail.msg;
-      emitter(processDataAction(actionType , payload));
+      if (typeof payload !== 'object') return;
+
+      emitter(processDataAction(actionType, payload));
     });
 
     return () => {
-      emitter(disconnectAction(actionType))
+      emitter(disconnectAction(actionType));
     };
   });
 };

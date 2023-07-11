@@ -1,6 +1,5 @@
 import { extendTheme } from '@chakra-ui/react';
 import typography from './typography';
-import { RED, GREEN, ASK, BID } from 'constants/quote';
 
 const colors = {
   darkBlue: {

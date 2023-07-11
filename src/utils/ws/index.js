@@ -7,20 +7,11 @@ import {
   DISCONNECTED, //斷線
   DISCONNECTING,
   RECONNECT, //斷線重新連線
-  ERROR, //
+  ERROR,
+  NOTREADY, //
 } from './configs/status';
 
-let STATUS_EVENT_GROUP = {
-  [STANDBY]: null,
-  [CONNECTING]: null,
-  [CONNECTED]: null,
-  [RECONNECT]: null,
-  [DISCONNECTING]: null,
-  [DISCONNECTED]: null,
-  [ERROR]: null,
-};
-
-const CHECK_POINT_DELAY_MS = 3 * 60 * 1000;
+const CHECK_POINT_DELAY_MS = 1 * 60 * 1000;
 
 //event
 const onOpen = (wsInfo) => () => {
@@ -32,7 +23,8 @@ const onMessage = (wsInfo) => (e) => {
   checkConnectStatus(wsInfo);
 
   try {
-    const msg = JSON.parse(e.data);
+    const msg = e.data === 'pong' ? e.data : JSON.parse(e.data);
+
     const receiveMessageEvent = new CustomEvent(RECEIVE_MESSAGE, {
       detail: { msg },
     });
@@ -45,18 +37,18 @@ const onMessage = (wsInfo) => (e) => {
 };
 
 const onClose = (wsInfo) => () => {
-  console.log("🚀 ~ file: index.js:52 ~ onClose ~ onClose:", wsInfo)
   clearCheckpointInfo(wsInfo);
   wsInfo.instance = null;
-  
+
   if (wsInfo.currentStatus === DISCONNECTING) {
     changeCurrentStatus(wsInfo, DISCONNECTED);
   }
 };
 
 const onError = (wsInfo) => (e) => {
-  console.log("🚀 ~ file: index.js:52 ~ onClose ~ onClose:", wsInfo ,e)
+  console.error(wsInfo, e);
 
+  clearCheckpointInfo(wsInfo);
   changeCurrentStatus(wsInfo, ERROR, e);
 };
 
@@ -73,7 +65,7 @@ function wrapEventTargetFunctions(wsInfo) {
     delegate.removeEventListener(...payload);
   };
 
-  return wsInfo
+  return wsInfo;
 }
 
 function injectionWSInfo(wsInfo, targetFn) {
@@ -83,19 +75,25 @@ function injectionWSInfo(wsInfo, targetFn) {
 }
 
 function changeCurrentStatus(wsInfo, status, payload = null) {
-  if (wsInfo.currentStatus === status) return;
+  const prevStatus = wsInfo.currentStatus;
+  wsInfo.currentStatus = status;
+
+  const statusEvent = new CustomEvent(status, {
+    payload,
+  });
+
+  wsInfo.dispatchEvent(statusEvent);
+
+  if (prevStatus === status) return;
 
   const statusChangeEvent = new CustomEvent(STATUS_CHANGE, {
     detail: {
-      prevStatus: wsInfo.currentStatus,
+      prevStatus,
       currentStatus: status,
       payload,
     },
   });
-
   wsInfo.dispatchEvent(statusChangeEvent);
-
-  wsInfo.currentStatus = status;
 }
 
 function setCheckConnectPoint(wsInfo) {
@@ -143,12 +141,50 @@ function subscribeEvents(wsInfo) {
   wsInfo.instance.addEventListener('close', onClose(wsInfo));
 }
 
+function setCmdToBuffer(wsInfo, cmd) {
+  wsInfo.waitingToSendBuffer.push(cmd);
+}
+
+function isStatusConnect(wsInfo) {
+  return (
+    wsInfo.currentStatus === CONNECTED || wsInfo.currentStatus === CONNECTING
+  );
+}
+
 export function setOnReceivedMessage(wsInfo, event) {
   wsInfo.addEventListener(RECEIVE_MESSAGE, event);
 }
 
 export function setOnStatusChange(wsInfo, event) {
   wsInfo.addEventListener(STATUS_CHANGE, event);
+}
+
+export function setOnStandBy(wsInfo, event) {
+  wsInfo.addEventListener(STANDBY, event);
+}
+
+export function setOnConnecting(wsInfo, event) {
+  wsInfo.addEventListener(CONNECTING, event);
+}
+
+export function setOnConnected(wsInfo, event) {
+  wsInfo.addEventListener(CONNECTED, event);
+}
+
+export function setOnDisconnected(wsInfo, event) {
+  wsInfo.addEventListener(DISCONNECTED, event);
+}
+
+export function setOnDisconnecting(wsInfo, event) {
+  wsInfo.addEventListener(DISCONNECTING, event);
+}
+
+export function setOnReconnect(wsInfo, event) {
+  wsInfo.addEventListener(RECONNECT, event);
+}
+
+export function setOnError(wsInfo, event) {
+  wsInfo.addEventListener(ERROR, event);
 }
 
 export function connectWS(wsInfo) {
@@ -166,11 +202,17 @@ export function connectWS(wsInfo) {
 
 export function disconnectWS(wsInfo) {
   const { currentStatus } = wsInfo;
-  if (currentStatus === DISCONNECTED || currentStatus === DISCONNECTING) return;
+  if (
+    currentStatus === DISCONNECTED ||
+    currentStatus === DISCONNECTING ||
+    currentStatus === ERROR
+  )
+    return;
 
   try {
     wsInfo.instance.close();
-
+    wsInfo.instance = null;
+    clearCheckpointInfo(wsInfo);
     changeCurrentStatus(wsInfo, DISCONNECTING);
   } catch (e) {
     changeCurrentStatus(wsInfo, ERROR, e);
@@ -179,23 +221,43 @@ export function disconnectWS(wsInfo) {
 
 export function reconnectWS(wsInfo) {
   try {
-    if (wsInfo.instance) {
-      wsInfo.instance.close();
-      wsInfo.instance = null;
-      clearCheckpointInfo(wsInfo);
+    if (!isStatusConnect(wsInfo.currentStatus)) {
+      tryReconnect();
+      return;
     }
 
-    wsInfo.instance = new WebSocket(wsInfo.path);
+    disconnectWS(wsInfo);
 
-    subscribeEvents(wsInfo);
-    changeCurrentStatus(wsInfo, RECONNECT);
+    function tryReconnect() {
+      wsInfo.instance = new WebSocket(wsInfo.path);
+
+      subscribeEvents(wsInfo);
+      changeCurrentStatus(wsInfo, RECONNECT);
+
+      wsInfo.removeEventListener(tryReconnect);
+    }
+
+    wsInfo.addEventListener(DISCONNECTED, tryReconnect);
   } catch (e) {
     changeCurrentStatus(wsInfo, ERROR, e);
   }
 }
 
+export function cleanWaitingToSendBuffer(wsInfo) {
+  wsInfo.waitingToSendBuffer.forEach((cmd) => {
+    sendWS(wsInfo, cmd);
+  });
+
+  wsInfo.waitingToSendBuffer = [];
+}
+
 export function sendWS(wsInfo, payload) {
   const sendStr = isString(payload) ? payload : JSON.stringify(payload);
+
+  if (!isStatusConnect(wsInfo)) {
+    setCmdToBuffer(wsInfo, sendStr);
+    return;
+  }
 
   try {
     wsInfo.instance.send(sendStr);
@@ -210,33 +272,20 @@ export function wrapWebsocketAPI(wsInfo) {
     reconnect: injectionWSInfo(wsInfo, reconnectWS),
     disconnect: injectionWSInfo(wsInfo, disconnectWS),
     send: injectionWSInfo(wsInfo, sendWS),
-    onStatusChange: injectionWSInfo(wsInfo , setOnStatusChange),
-    onReceivedMessage: injectionWSInfo(wsInfo , setOnReceivedMessage),
+    onStatusChange: injectionWSInfo(wsInfo, setOnStatusChange),
+    onReceivedMessage: injectionWSInfo(wsInfo, setOnReceivedMessage),
   };
 }
 
 export default function createWebsocketConnectInfo({
   path,
-  customeStatusEventGroup = {},
   checkpointDelayMS,
 }) {
-  const hasSetEvent = typeof statusEvents === 'object';
-
-  const statusEventGroup = hasSetEvent
-    ? {
-        ...STATUS_EVENT_GROUP,
-        ...customeStatusEventGroup,
-      }
-    : STATUS_EVENT_GROUP;
-
   const wsInfo = {
     instance: null,
     path,
-    currentStatus: STANDBY,
-    statusEventGroup: {
-      ...STATUS_EVENT_GROUP,
-      ...statusEventGroup,
-    },
+    currentStatus: NOTREADY,
+    waitingToSendBuffer: [],
     checkpointInfo: {
       timeIdQueue: [],
       count: 0,
@@ -245,6 +294,6 @@ export default function createWebsocketConnectInfo({
         : checkpointDelayMS,
     },
   };
-  
+
   return wrapEventTargetFunctions(wsInfo);
 }

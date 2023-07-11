@@ -1,13 +1,13 @@
 import createActionTypes from 'redux-create-actiontype';
 
-export const syncActionTypes = createActionTypes({ prefix: 'TRANSFORM' })(
+export const syncActionTypes = createActionTypes()(
   'QUOTES',
   'LAST_PRICE'
 );
 
 export const wsActionTypes = createActionTypes({
   prefix: 'WS',
-  apiPostfixes: ['COMMAND', 'INFO'],
+  apiPostfixes: ['COMMAND', 'INFO' , 'BUFFER_PROCESSING'],
 })(
   {
     QUOTES: { api: true },

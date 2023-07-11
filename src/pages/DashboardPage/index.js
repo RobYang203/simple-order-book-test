@@ -7,14 +7,10 @@ import QuoteRow from './components/QuoteRow';
 import { ASK, BID } from 'constants/quote';
 import {
   connectQuotesAction,
-  disconnectQuotesAction,
-  processQuotesDataAction,
   subscribeQuotesAction,
 } from 'actions/creators/quotes';
 import {
   connectLastPriceAction,
-  disconnectLastPriceAction,
-  processLastPriceDataAction,
   subscribeLastPriceAction,
 } from 'actions/creators/lastPrice';
 
@@ -41,16 +37,10 @@ function DashboardPage() {
   useEffect(() => {
     dispatch(connectQuotesAction());
     dispatch(connectLastPriceAction());
-
-    setTimeout(() => {
-      dispatch(subscribeQuotesAction('BTCPFC'));
-      dispatch(subscribeLastPriceAction('BTCPFC'));
-
-      setTimeout(() => {
-        dispatch(disconnectLastPriceAction());
-        dispatch(disconnectQuotesAction());
-      }, 10000);
-    }, 5000);
+    dispatch(subscribeQuotesAction('BTCPFC'));
+    dispatch(subscribeLastPriceAction('BTCPFC'));
+    
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

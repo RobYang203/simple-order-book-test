@@ -67,3 +67,20 @@ export const compareNumber = (a, b) => {
   const BN = BigNumber.clone();
   return BN(a ?? 0).comparedTo(b ?? 0);
 };
+
+const fmt = {
+  prefix: '',
+  decimalSeparator: '.',
+  groupSeparator: ',',
+  groupSize: 3,
+  secondaryGroupSize: 0,
+  fractionGroupSeparator: ' ',
+  fractionGroupSize: 0,
+  suffix: '',
+};
+
+export const formatNumberString = (value) => {
+  if (value === '-') return value;
+  const BN = BigNumber.clone();
+  return BN(value).toFormat(fmt);
+};

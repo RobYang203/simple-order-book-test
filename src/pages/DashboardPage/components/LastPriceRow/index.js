@@ -2,6 +2,7 @@ import React from 'react';
 import { Flex, Text, chakra } from '@chakra-ui/react';
 import { ReactComponent as ArrowSVG } from 'assets/arrow.svg';
 import { useTheme } from '@emotion/react';
+import { formatNumberString } from 'utils';
 
 const ArrowLogo = chakra(ArrowSVG);
 
@@ -29,7 +30,7 @@ function LastPriceRow({ colorType, price }) {
   return (
     <Flex sx={classes.root} justify="center" alignItems="center">
       <Text fontWeight={900} as="h4">
-        {price}
+        {formatNumberString(price)}
       </Text>
       <ArrowLogo sx={classes.logo} />
     </Flex>

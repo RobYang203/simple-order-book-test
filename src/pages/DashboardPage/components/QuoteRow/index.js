@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Fade, Flex, Text, useTheme } from '@chakra-ui/react';
-import { divideNumber, getPercent, mergeClass } from 'utils';
+import { Box, Flex, Text, useTheme } from '@chakra-ui/react';
+import { divideNumber, formatNumberString, getPercent, mergeClass } from 'utils';
 import { MAPPING_COLORS } from 'constants/quote';
 import AccumulativeBar from '../AccumulativeBar';
 import propTypes from 'prop-types';
-import { isEmpty } from 'lodash';
 import SizeCell from '../SizeCell';
 
 const getClasses =
@@ -35,7 +34,7 @@ const getClasses =
       marginLeft: 0,
     },
     firstIn: {
-      backgroundColor: 'none', //quotes[colorType].alpha500,
+      backgroundColor: quotes[colorType].alpha500,
     },
     accumulativeBar: {
       color: quotes[colorType].alpha120,
@@ -78,22 +77,19 @@ function QuoteRow({ type, isNew, price, size, total, maxTotal }) {
     >
       <Box sx={mergeClass(classes.cell, classes.priceCell)} flex={1}>
         <Text fontWeight={900} as="h6">
-          {price}
+          {formatNumberString(price)}
         </Text>
       </Box>
-      <SizeCell sx={classes.cell} size={size} />
+      <SizeCell sx={classes.cell} size={formatNumberString(size)} />
       <Box sx={classes.cell} flex={2}>
         <Text fontWeight={900} as="h6">
-          {total}
+          {formatNumberString(total)}
         </Text>
         <AccumulativeBar
           widthPercent={getPercent(divideNumber(total, maxTotal))}
           color={classes.accumulativeBar.color}
         />
       </Box>
-      {/* <Fade in={isNew} onTransitionEnd={(e)=>console.log(ez)}>
-        <Box sx={classes.backBar} />
-      </Fade> */}
     </Flex>
   );
 }
@@ -101,7 +97,9 @@ function QuoteRow({ type, isNew, price, size, total, maxTotal }) {
 QuoteRow.defaultProps = {
   price: '-',
   size: '-',
-  total: '-',
+  total: '0',
+  maxTotal: '0',
+  isNew: false
 };
 
 QuoteRow.propTypes = {
