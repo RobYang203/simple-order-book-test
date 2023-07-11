@@ -5,8 +5,18 @@ import LastPriceRow from './components/LastPriceRow';
 import QuoteHead from './components/QuoteHead';
 import QuoteRow from './components/QuoteRow';
 import { ASK, BID } from 'constants/quote';
-import { processQuotesDataAction } from 'actions/creators/quotes';
-import { processLastPriceDataAction } from 'actions/creators/lastPrice';
+import {
+  connectQuotesAction,
+  disconnectQuotesAction,
+  processQuotesDataAction,
+  subscribeQuotesAction,
+} from 'actions/creators/quotes';
+import {
+  connectLastPriceAction,
+  disconnectLastPriceAction,
+  processLastPriceDataAction,
+  subscribeLastPriceAction,
+} from 'actions/creators/lastPrice';
 
 const classes = {
   root: {
@@ -27,10 +37,22 @@ function DashboardPage() {
   const dispatch = useDispatch();
   const { quotes, lastPrice } = useSelector(({ orderbook }) => orderbook);
   const { asks, bids } = quotes;
+
   useEffect(() => {
-    dispatch(processQuotesDataAction());
-    dispatch(processLastPriceDataAction());
+    dispatch(connectQuotesAction());
+    dispatch(connectLastPriceAction());
+
+    setTimeout(() => {
+      dispatch(subscribeQuotesAction('BTCPFC'));
+      dispatch(subscribeLastPriceAction('BTCPFC'));
+
+      setTimeout(() => {
+        dispatch(disconnectLastPriceAction());
+        dispatch(disconnectQuotesAction());
+      }, 10000);
+    }, 5000);
   }, []);
+
   return (
     <Box sx={classes.root}>
       <Box>

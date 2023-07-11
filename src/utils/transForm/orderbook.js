@@ -1,4 +1,4 @@
-import { getMax8, sortByDesc } from 'utils';
+import { compareNumber, getMax8, sortByDesc } from 'utils';
 import { plusNumber } from 'utils';
 
 export const initialQuote = () => new Array(8).fill({}).map(() => ({}));
@@ -6,14 +6,37 @@ export const initialQuote = () => new Array(8).fill({}).map(() => ({}));
 export const transformQuotes = (isSnapshot, quotes, currentQuotes) => {
   const tmp = isSnapshot ? getMax8(sortByDesc(quotes)) : quotes;
 
+  const combineTmp = currentQuotes.map((quote) => {
+    const index = tmp.findIndex(
+      ([price]) => compareNumber(price, quote.price) === 0
+    );
+
+    if (index === -1)
+      return {
+        ...quote,
+        isNew: false,
+      };
+
+    const next = tmp[index];
+
+    tmp.splice(index, 1);
+
+    return {
+      ...quote,
+      size: next[1],
+      isNew: false,
+    };
+  });
+
   const formatTmp = tmp.map(([price, size]) => {
     return {
       price,
       size,
+      isNew: true,
     };
   });
 
-  return getMax8(sortByDesc([...formatTmp, ...currentQuotes]), 'price');
+  return getMax8(sortByDesc([...formatTmp, ...combineTmp]), 'price');
 };
 
 export const getTotalForAsks = (asks) => {

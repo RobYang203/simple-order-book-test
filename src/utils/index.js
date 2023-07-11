@@ -65,5 +65,5 @@ export const getPercent = (number) => {
 
 export const compareNumber = (a, b) => {
   const BN = BigNumber.clone();
-  return BN(a ?? 0).comparedTo(b ?? 0) < 1;
+  return BN(a ?? 0).comparedTo(b ?? 0);
 };

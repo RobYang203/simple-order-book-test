@@ -1,40 +1,42 @@
-import React from 'react';
-import { Box, Text } from '@chakra-ui/react';
-import { mergeClass } from 'utils';
+import React, { useEffect, useState } from 'react';
+import { Box, Text, usePrevious, useTheme } from '@chakra-ui/react';
+import { compareNumber, mergeClass } from 'utils';
 
-const classes = {
-  accumulativeBar: {
-    width: '100%',
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    left: 0,
-    bottom: 0,
-    transform: 'scaleX(-1)',
-    '&:after': {
-      content: '""',
-      background: 'rgba(255, 90, 90, 0.12)',
-      width: '100%',
-      position: 'absolute',
-      top: 0,
-      right: 0,
-      left: 0,
-      bottom: 0,
-    },
-  },
-};
+const getAnimationStyle =
+  (colorType) =>
+  ({ colors: { quotes } }) => ({
+    backgroundColor: quotes[colorType]?.alpha120,
+  });
 
-function TotalCell({ sx, value }) {
+function SizeCell({ sx, size }) {
+  const prevSize = usePrevious(size);
+  const theme = useTheme();
+  const [animationStyle, setAnimationStyle] = useState({});
+
+  useEffect(() => {
+    const compareSize = compareNumber(size, prevSize);
+    const colorType =
+      compareSize === 1 ? 'green' : compareSize === -1 ? 'red' : '';
+    const style = getAnimationStyle(colorType)(theme);
+
+    setAnimationStyle(style);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [size]);
+
   return (
-    <Box sx={sx} flex={2}>
+    <Box
+      sx={mergeClass(sx, animationStyle)}
+      onTransitionEnd={() => setAnimationStyle({})}
+      flex={1}
+    >
       <Text fontWeight={900} as="h6">
-        {value}
+        {size}
       </Text>
-      <Box sx={classes.accumulativeBar}></Box>
     </Box>
   );
 }
 
-TotalCell.propTypes = {};
+SizeCell.propTypes = {};
 
-export default TotalCell;
+export default SizeCell;
