@@ -1,17 +1,24 @@
 import types from 'actions/types';
-import { takeLatest } from 'redux-saga/effects';
-import { executeOrderbookWSSaga } from './orderbookSaga';
-import { executeLastPriceWSSaga } from './lastPriceSaga';
+import { takeEvery, takeLatest } from 'redux-saga/effects';
+import { executeQuotesWSSaga, transFormQuotesSaga } from './quotesSaga';
+import { executeLastPriceWSSaga, transFormLastPriceSaga } from './lastPriceSaga';
 
-export { connectOrderbookWSSaga } from './orderbookSaga';
+export { connectQuotesWSSaga } from './quotesSaga';
 
 export { connectLastPriceWSSaga } from './lastPriceSaga';
 
-export function* watchExecuteOrderbookWSSaga() {
-  yield takeLatest(types.WS_ORDERBOOK_COMMAND, executeOrderbookWSSaga);
+export function* watchExecuteQuotesWSSaga() {
+  yield takeLatest(types.WS_QUOTES_COMMAND, executeQuotesWSSaga);
 }
 
 export function* watchExecuteLastPriceWSSaga() {
   yield takeLatest(types.WS_LAST_PRICE_COMMAND, executeLastPriceWSSaga);
 }
 
+export function* watchTransFormQuotesSaga() {
+  yield takeEvery(types.QUOTES_PROCESSING, transFormQuotesSaga);
+}
+
+export function* watchTransFormLastPriceSaga() {
+  yield takeEvery(types.LAST_PRICE_PROCESSING, transFormLastPriceSaga);
+}

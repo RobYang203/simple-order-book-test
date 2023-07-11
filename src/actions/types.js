@@ -1,16 +1,16 @@
 import createActionTypes from 'redux-create-actiontype';
 
-export const syncActionTypes = createActionTypes({ prefix: 'REFRESH' })(
-  'ORDERBOOK',
+export const syncActionTypes = createActionTypes({ prefix: 'TRANSFORM' })(
+  'QUOTES',
   'LAST_PRICE'
 );
 
 export const wsActionTypes = createActionTypes({
-  prefix: 'ws',
-  apiPostfixes: ['command', 'info'],
+  prefix: 'WS',
+  apiPostfixes: ['COMMAND', 'INFO'],
 })(
   {
-    ORDERBOOK: { api: true },
+    QUOTES: { api: true },
   },
   {
     LAST_PRICE: { api: true },
@@ -18,8 +18,15 @@ export const wsActionTypes = createActionTypes({
 );
 
 export const asyncActionTypes = createActionTypes({
-  apiPostfixes: ['success', 'error', 'processing'],
-})();
+  apiPostfixes: ['SUCCESS', 'ERROR', 'PROCESSING'],
+})(
+  {
+    QUOTES: { api: true },
+  },
+  {
+    LAST_PRICE: { api: true },
+  }
+);
 
 const totalActionTypes = {
   ...syncActionTypes,

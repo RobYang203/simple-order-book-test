@@ -1,13 +1,12 @@
-import React from 'react';
-import { Box, Flex, Text, chakra } from '@chakra-ui/react';
-import { useDispatch } from 'react-redux';
-import { assign, merge } from 'lodash';
-import { mergeClass } from 'utils';
+import React, { useEffect } from 'react';
+import { Box, Text } from '@chakra-ui/react';
+import { useDispatch, useSelector } from 'react-redux';
 import LastPriceRow from './components/LastPriceRow';
 import QuoteHead from './components/QuoteHead';
 import QuoteRow from './components/QuoteRow';
 import { ASK, BID } from 'constants/quote';
-
+import { processQuotesDataAction } from 'actions/creators/quotes';
+import { processLastPriceDataAction } from 'actions/creators/lastPrice';
 
 const classes = {
   root: {
@@ -21,12 +20,17 @@ const classes = {
     textAlign: 'left',
     padding: '5px 15px',
     height: '37px',
-  }
+  },
 };
 
 function DashboardPage() {
   const dispatch = useDispatch();
-
+  const { quotes, lastPrice } = useSelector(({ orderbook }) => orderbook);
+  const { asks, bids } = quotes;
+  useEffect(() => {
+    dispatch(processQuotesDataAction());
+    dispatch(processLastPriceDataAction());
+  }, []);
   return (
     <Box sx={classes.root}>
       <Box>
@@ -34,24 +38,24 @@ function DashboardPage() {
           Order Book
         </Text>
       </Box>
-      <QuoteHead/>
-      <QuoteRow type={ASK} price='21,669.0' size='3,691' total=' 5,657' />
-      <QuoteRow type={ASK} price='21,669.0' size='3,691' total=' 5,657' />
-      <QuoteRow type={ASK} price='21,669.0' size='3,691' total=' 5,657' />
-      <QuoteRow type={ASK} price='21,669.0' size='3,691' total=' 5,657' />
-      <QuoteRow type={ASK} price='21,669.0' size='3,691' total=' 5,657' />
-      <QuoteRow type={ASK} price='21,669.0' size='3,691' total=' 5,657' />
-      <QuoteRow type={ASK} price='21,669.0' size='3,691' total=' 5,657' />
-      <QuoteRow type={ASK} price='21,669.0' size='3,691' total=' 5,657' />
-      <LastPriceRow colorType='default' price='5,657' />
-      <QuoteRow type={BID} price='21,669.0' size='3,691' total=' 5,657' />
-      <QuoteRow type={BID} price='21,669.0' size='3,691' total=' 5,657' />
-      <QuoteRow type={BID} price='21,669.0' size='3,691' total=' 5,657' />
-      <QuoteRow type={BID} price='21,669.0' size='3,691' total=' 5,657' />
-      <QuoteRow type={BID} price='21,669.0' size='3,691' total=' 5,657' />
-      <QuoteRow type={BID} price='21,669.0' size='3,691' total=' 5,657' />
-      <QuoteRow type={BID} price='21,669.0' size='3,691' total=' 5,657' />
-      <QuoteRow type={BID} price='21,669.0' size='3,691' total=' 5,657' />
+      <QuoteHead />
+      {asks.map((ask, index) => (
+        <QuoteRow
+          key={`ask-${ask.price ?? index}`}
+          type={ASK}
+          {...ask}
+          maxTotal={asks[0].total}
+        />
+      ))}
+      <LastPriceRow colorType={lastPrice.color} price={lastPrice.price} />
+      {bids.map((bid, index) => (
+        <QuoteRow
+          key={`bid-${bid.price ?? index}`}
+          type={BID}
+          {...bid}
+          maxTotal={bids[bids.length - 1].total}
+        />
+      ))}
     </Box>
   );
 }

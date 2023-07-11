@@ -1,6 +1,6 @@
 import { combineReducers } from "redux";
-import video from "./videoReducer";
+import orderbook from "./orderbookReducer";
 
 
-const appReducer = combineReducers({ video });
+const appReducer = combineReducers({ orderbook });
 export default appReducer;

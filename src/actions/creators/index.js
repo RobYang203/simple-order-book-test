@@ -1,7 +1,7 @@
 import { DISCONNECT } from 'constants/wsCommands';
 
-export const refreshDataAction = (type, payload) => ({
-  type: `REFRESH_${type}`,
+export const processDataAction = (type, payload) => ({
+  type: `${type}_PROCESSING`,
   payload,
 });
 

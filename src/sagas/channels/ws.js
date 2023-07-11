@@ -1,4 +1,4 @@
-import { disconnectAction, refreshDataAction } from 'actions/creators';
+import { disconnectAction, processDataAction } from 'actions/creators';
 import { eventChannel } from 'redux-saga';
 import { setOnReceivedMessage, setOnStatusChange } from 'utils/ws';
 
@@ -8,7 +8,7 @@ export const createWebsocketChannel = (wsInfo, actionType) => {
 
     setOnReceivedMessage(wsInfo, (e) => {
       const payload = e.detail.msg;
-      emitter(refreshDataAction(actionType , payload));
+      emitter(processDataAction(actionType , payload));
     });
 
     return () => {

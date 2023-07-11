@@ -1,8 +1,9 @@
 import React from 'react';
 import { Box, Text } from '@chakra-ui/react';
 import { mergeClass } from 'utils';
+import propTypes from 'prop-types';
 
-const classes = {
+const getClasses = (widthPercent, background) => ({
   root: {
     width: '100%',
     position: 'absolute',
@@ -13,8 +14,8 @@ const classes = {
     transform: 'scaleX(-1)',
     '&:after': {
       content: '""',
-      background: 'rgba(255, 90, 90, 0.12)',
-      width: '100%',
+      background,
+      width: `${widthPercent}%`,
       position: 'absolute',
       top: 0,
       right: 0,
@@ -22,14 +23,22 @@ const classes = {
       bottom: 0,
     },
   },
-};
+});
 
-function AccumulativeBar({ value }) {
-  return (
-    <Box sx={classes.root}/>
-  );
+function AccumulativeBar({ widthPercent, color }) {
+  const classes = getClasses(widthPercent ,color);
+
+  return <Box sx={classes.root} />;
 }
 
-AccumulativeBar.propTypes = {};
+AccumulativeBar.defaultProps = {
+  widthPercent: '0',
+  color: '',
+};
+
+AccumulativeBar.propTypes = {
+  widthPercent: propTypes.string,
+  color: propTypes.string,
+};
 
 export default AccumulativeBar;

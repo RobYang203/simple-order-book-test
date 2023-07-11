@@ -44,7 +44,13 @@ export const disconnectLastPriceAction = () => ({
   },
 });
 
-export const refreshOrderbookDataAction = (payload) => ({
-  type: types.REFRESH_LAST_PRICE,
+export const processLastPriceDataAction = (payload) => ({
+  type: types.LAST_PRICE_PROCESSING,
   payload,
 });
+
+export const okLastPriceAction = (payload) => ({
+  type: types.LAST_PRICE_SUCCESS,
+  payload,
+});
+

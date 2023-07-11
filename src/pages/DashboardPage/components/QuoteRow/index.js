@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Flex, Text, useTheme } from '@chakra-ui/react';
-import { mergeClass } from 'utils';
+import { divideNumber, getPercent, mergeClass } from 'utils';
 import { MAPPING_COLORS } from 'constants/quote';
 import AccumulativeBar from '../AccumulativeBar';
+import propTypes from 'prop-types';
 
 const getClasses =
   (colorType) =>
@@ -30,9 +31,12 @@ const getClasses =
     firstIn: {
       backgroundColor: quotes[colorType].alpha500,
     },
+    accumulativeBar: {
+      color: quotes[colorType].alpha120,
+    },
   });
 
-function QuoteRow({ type, price, size, total }) {
+function QuoteRow({ type, price, size, total, maxTotal }) {
   const theme = useTheme();
 
   const mappingColorType = MAPPING_COLORS[type];
@@ -69,10 +73,27 @@ function QuoteRow({ type, price, size, total }) {
         <Text fontWeight={900} as="h6">
           {total}
         </Text>
-        <AccumulativeBar />
+        <AccumulativeBar
+          widthPercent={getPercent(divideNumber(total, maxTotal))}
+          color={classes.accumulativeBar.color}
+        />
       </Box>
     </Flex>
   );
 }
+
+QuoteRow.defaultProps = {
+  price: '-',
+  size: '-',
+  total: '-',
+};
+
+QuoteRow.propTypes = {
+  price: propTypes.string,
+  size: propTypes.string,
+  total: propTypes.string,
+  type: propTypes.string,
+  maxTotal: propTypes.string,
+};
 
 export default QuoteRow;
